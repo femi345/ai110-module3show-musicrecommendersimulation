@@ -1,20 +1,31 @@
 # Reflection: Music Recommender Simulation
 
-## Profile Comparisons
+## Profile comparisons
 
-**Happy Pop Fan vs. Chill Lofi Listener:**
-The pop fan's top picks are high-energy, upbeat tracks (Sunrise City at 0.82 energy), while the lofi listener gets mellow, low-tempo songs (Library Rain at 0.35 energy). This makes sense because energy and genre pull in opposite directions for these two profiles. What is interesting is that Focus Flow (lofi/focused) still appears for the lofi listener even though its mood does not match "chill" -- the genre bonus alone carries it into the top 3.
+### Happy Pop Fan vs. Chill Lofi Listener
 
-**Intense Rock Lover vs. EDM Party Goer:**
-Both profiles want high energy, but they diverge on genre and valence. The rock lover gets Storm Runner and Rage Circuit (aggressive, lower valence), while the EDM fan gets Afterparty Haze and Neon Basement (danceable, higher valence). The overlap is Gym Hero, which shows up in both lists because it has extreme energy (0.93) and the word "intense" in its mood. This highlights how a single song can bridge two very different listener types when it scores high on a shared feature.
+These two are basically opposite vibes. The pop fan's list is all upbeat, high energy stuff (Sunrise City at 0.82 energy), and the lofi listener gets mellow, slow tracks (Library Rain at 0.35 energy). Makes sense.
 
-**Sad & Acoustic vs. Happy Pop Fan:**
-These profiles are nearly opposites. The sad/acoustic user gets Ghost Town Blues at #1 -- the only blues song in the catalog -- and then a cluster of lofi tracks that happen to share low energy. The happy pop fan gets none of those. This is the clearest example of the filter bubble: each profile sees a completely non-overlapping top 5, which means the system would never expose a sad-music listener to an upbeat song they might actually enjoy.
+One thing I noticed: Focus Flow (lofi/focused) shows up in the lofi listener's top 3 even though its mood is "focused," not "chill." The genre bonus alone (+2.0) is enough to carry it past songs that actually match the mood but are in the wrong genre. That's a pretty clear sign that genre is weighted too heavily.
 
-## Experiment Observations
+### Intense Rock Lover vs. EDM Party Goer
 
-When genre weight was halved (2.0 to 1.0) and energy weight was doubled, the Happy Pop Fan's results shifted noticeably. Rooftop Lights (indie pop, not pop) climbed to #2 because its energy (0.76) is close to the target. Under default weights it was #3 behind Gym Hero; the weight shift demoted Gym Hero because its genre bonus shrank and its energy gap (0.93 vs 0.80) became more costly. This confirmed that the default system over-rewards exact genre strings.
+Both want high energy, but they split on genre and valence. The rock fan gets Storm Runner and Rage Circuit (aggressive, lower valence). The EDM fan gets Afterparty Haze and Neon Basement (danceable, higher valence).
 
-## What I Learned
+Gym Hero shows up in both lists. It has extreme energy (0.93) and its mood is tagged "intense," so it scores well for the rock profile, and its high danceability (0.88) helps it sneak into the EDM list too. Kind of interesting that one song can fit two very different listeners just by being high-energy.
 
-The most useful takeaway is that recommendation is really just sorting -- score everything, sort descending, take the top. The "magic" is entirely in how you compute the score, and tiny changes to those numbers produce visibly different user experiences. That makes weight tuning one of the most impactful decisions in a recommender, and it is easy to get wrong or introduce bias without realizing it.
+### Sad & Acoustic vs. Happy Pop Fan
+
+The most extreme contrast. Sad/acoustic user gets Ghost Town Blues at #1 (the only blues track), then a bunch of lofi songs that happen to have low energy. The happy pop fan gets none of those songs. Zero overlap in their top 5s.
+
+This is where the filter bubble is most obvious. The system would never show the sad-music listener something upbeat that they might actually be in the mood for sometimes. It just keeps feeding them more of the same.
+
+## Experiment observations
+
+I halved genre weight (2.0 to 1.0) and doubled energy weight for the Happy Pop Fan profile. Rooftop Lights (indie pop, not pop) climbed to #2 because its energy (0.76) is close to the 0.80 target. Under default weights it was #3 behind Gym Hero. The weight shift hurt Gym Hero because its genre bonus shrank and its energy gap (0.93 vs 0.80) got punished harder.
+
+So yeah, the default system is basically a genre matcher with energy as a tiebreaker. Changing that balance made the results feel more about the actual vibe of the music and less about the label.
+
+## What I learned
+
+Recommendation is just sorting. Score everything, sort descending, take the top. That's it. The "intelligence" is entirely in how you calculate that score. And what I didn't expect is how much the output changes from one small weight tweak. I keep coming back to that, because it means whoever picks the weights is basically deciding what people listen to, and they might not even think of it that way.

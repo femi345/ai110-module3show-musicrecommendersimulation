@@ -1,26 +1,26 @@
 # Music Recommender Simulation
 
-## Project Summary
+## Project summary
 
-A content-based music recommendation system built in Python. Given a user's taste profile (genre, mood, energy, valence, danceability), it scores every song in a 20-track catalog using weighted attribute matching and returns the top 5 results with human-readable explanations for each pick.
+I built a simple music recommender in Python. You give it a taste profile (genre, mood, energy, etc.) and it scores every song in a 20-track catalog, then spits out the top 5 with reasons for each pick.
 
 ---
 
-## How The System Works
+## How the system works
 
-### Real-World Context
+### Real world context
 
-Streaming platforms like Spotify use two main strategies: **collaborative filtering** (finding users with similar listening history and recommending what they liked) and **content-based filtering** (matching song attributes like tempo, energy, and genre to a user's stated preferences). This project implements a simplified version of content-based filtering.
+Spotify-style platforms generally use two approaches: collaborative filtering, where they look at what similar users listened to, and content-based filtering, where they match song attributes (tempo, energy, genre) against what you say you like. This project does the second one, in a very stripped-down way.
 
-### Features Used
+### Features used
 
-Each **Song** has: `genre`, `mood`, `energy` (0-1), `tempo_bpm`, `valence` (0-1), `danceability` (0-1), `acousticness` (0-1).
+Each song has: `genre`, `mood`, `energy` (0-1), `tempo_bpm`, `valence` (0-1), `danceability` (0-1), `acousticness` (0-1).
 
-Each **UserProfile** stores: `favorite_genre`, `favorite_mood`, `target_energy`, and optionally `valence` and `danceability` targets.
+A user profile stores: `favorite_genre`, `favorite_mood`, `target_energy`, and optionally `valence` and `danceability` targets.
 
-### Algorithm Recipe
+### Algorithm recipe
 
-For each song, the scoring function computes:
+For each song, the scoring function adds up points:
 
 | Rule | Points | Logic |
 |------|--------|-------|
@@ -30,15 +30,15 @@ For each song, the scoring function computes:
 | Valence similarity | 0 to +0.5 | `(1.0 - abs(song_valence - target_valence)) * 0.5` |
 | Danceability similarity | 0 to +0.5 | `(1.0 - abs(song_dance - target_dance)) * 0.5` |
 
-Maximum possible score: **5.0**. Songs are sorted by score descending, and the top *k* are returned.
+Max score is 5.0. Songs get sorted highest to lowest, top *k* get returned.
 
-### Potential Bias
+### Potential bias
 
-This system is likely to over-prioritize genre because it carries the highest weight. A song that matches genre but misses on mood and energy can still outscore a song that matches mood, energy, valence, and danceability but is in the wrong genre. This creates a filter bubble for genre-loyal users.
+Genre carries the most weight by far. A song can match on mood, energy, valence, and danceability but still lose to a song that only matches on genre. That means the system basically locks you into whatever genre you said you liked.
 
 ---
 
-## Getting Started
+## Getting started
 
 ### Setup
 
@@ -64,23 +64,23 @@ pytest
 
 ## Experiments
 
-### Weight Shift: Genre halved, Energy doubled
+### Weight shift: genre halved, energy doubled
 
-Changed genre bonus from 2.0 to 1.0 and energy weight from 1x to 2x for the "Happy Pop Fan" profile.
+I changed genre bonus from 2.0 to 1.0 and doubled the energy weight for the "Happy Pop Fan" profile.
 
-**Result:** Rooftop Lights (indie pop) climbed from #3 to #2 because its energy (0.76) is very close to the target (0.80). Gym Hero dropped from #2 to #4 because its energy gap (0.93 vs 0.80) became more costly under doubled energy weight.
+Rooftop Lights (indie pop) jumped from #3 to #2 because its energy (0.76) is almost exactly the target (0.80). Gym Hero dropped from #2 to #4 because its energy gap (0.93 vs 0.80) got punished harder under the new weights.
 
-**Conclusion:** The default weights over-index on genre. When energy is weighted more heavily, the system becomes more sensitive to "vibe" and less locked into genre labels.
+Takeaway: the default scoring over-indexes on genre. Bumping up energy made the results feel more "vibe-aware" and less about matching a label.
 
 ---
 
-## Limitations and Risks
+## Limitations
 
-- Only works on a 20-song catalog -- too small for real use.
-- Exact string matching on genre and mood means "chill" and "relaxed" are treated as completely different.
-- No understanding of lyrics, language, or cultural context.
-- Genre carries the highest weight, creating a filter bubble that reinforces existing preferences.
-- No collaborative signal -- it cannot learn from other users' behavior.
+- 20 songs is tiny. Some genres only have one track, so there's zero variety for those users.
+- "chill" and "relaxed" are treated as totally different moods because it's exact string matching. No fuzzy logic.
+- Doesn't know anything about lyrics, language, or listening history.
+- Genre being worth 2x everything else creates a pretty obvious filter bubble.
+- Can't learn from other users. It only knows what one person told it.
 
 ---
 
@@ -88,6 +88,6 @@ Changed genre bonus from 2.0 to 1.0 and energy weight from 1x to 2x for the "Hap
 
 See the full [Model Card](model_card.md) and [Reflection](reflection.md).
 
-Building this recommender showed how a small set of rules -- match genre, match mood, compare energy -- is enough to produce results that feel personalized. But it also revealed how easily a simple system creates filter bubbles. When genre carries double the weight of everything else, users will never see songs outside their comfort zone.
+The thing that stuck with me is how little it takes for a system like this to feel like it "knows" you. Three rules and some weights, and the results actually look reasonable. But that's also what makes it dangerous in a real product, because the person choosing those weights is deciding what people hear, and most users would never know.
 
-The weight-shift experiment was the most revealing moment: one small change to the scoring formula completely reshuffled the top 5 results. In a real product, that kind of sensitivity means the engineers choosing weights are directly shaping what music millions of people hear. That is a design responsibility as much as a technical one.
+The weight shift experiment drove that home. I changed one number and the top 5 reshuffled completely. If Spotify did that, millions of people would hear different music tomorrow.
